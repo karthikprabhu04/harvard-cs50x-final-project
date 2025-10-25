@@ -7,7 +7,7 @@ UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def summarise_long_text(text, chunk_size=1000):
-    summarizer = pipeline("summarization", model="facebook/bart-base")  # ✅ Lighter model
+    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")  # ✅ Lighter model
     words = text.split()
     summaries = []
     for i in range(0, len(words), chunk_size):
@@ -15,7 +15,7 @@ def summarise_long_text(text, chunk_size=1000):
         summary_chunk = summarizer(
             chunk,
             max_length=150,
-            min_length=50,
+            min_length=10,
             do_sample=False
         )[0]["summary_text"]
         summaries.append(summary_chunk)
@@ -24,8 +24,6 @@ def summarise_long_text(text, chunk_size=1000):
 @app.route("/")
 def index():
     return render_template("index.html")
-
-
 
 
 @app.route("/process", methods=["POST"])
