@@ -1,6 +1,7 @@
 __pycache__/
 uploads/
-models/
 *.wav
+*.txt
 *.bin
-*.mp3
+*.webm
+venv/
