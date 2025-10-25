@@ -1,14 +1,22 @@
 from flask import Flask, render_template, request, jsonify
-import os
-import subprocess
-from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lex_rank import LexRankSummarizer
+import os, subprocess
+from transformers import pipeline
 
 app = Flask(__name__)
-
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Load summarizer once
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+
+def summarise_long_text(text, chunk_size=1000):
+    words = text.split()
+    summaries = []
+    for i in range(0, len(words), chunk_size):
+        chunk = " ".join(words[i:i + chunk_size])
+        summary_chunk = summarizer(chunk, max_length=150, min_length=50, do_sample=False)[0]["summary_text"]
+        summaries.append(summary_chunk)
+    return " ".join(summaries)
 
 @app.route("/")
 def index():
@@ -16,45 +24,24 @@ def index():
 
 @app.route("/process", methods=["POST"])
 def process_audio():
-    # Save uploaded audio
     file = request.files["audio"]
-    filepath = os.path.abspath(os.path.join(UPLOAD_FOLDER, "lecture.wav"))
-    file.save(filepath)
+    input_path = os.path.join(UPLOAD_FOLDER, "lecture_input.webm")
+    file.save(input_path)
 
-    # Define paths
-    whisper_exe = os.path.join("whisper.cpp", "build", "bin", "Release", "whisper-cli.exe")
+    output_path = os.path.join(UPLOAD_FOLDER, "lecture.wav")
+    subprocess.run(["ffmpeg", "-y", "-i", input_path, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", output_path],
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
     model_path = os.path.abspath(os.path.join("whisper.cpp", "models", "ggml-base.en.bin"))
-    transcript_path = os.path.join(UPLOAD_FOLDER, "lecture.wav.txt")
+    subprocess.run([os.path.join("whisper.cpp", "build", "bin", "Release", "whisper-cli.exe"),
+                    "-m", model_path, "-f", output_path, "-otxt"])
 
-    # Run Whisper.cpp command (transcribe audio)
-    subprocess.run([
-        whisper_exe,
-        "-m", model_path,
-        "-f", filepath,
-        "-otxt"
-    ], cwd=os.path.dirname(whisper_exe))
-
-    # Ensure transcript file exists
-    if not os.path.exists(transcript_path):
-        # Sometimes Whisper saves the output next to the .exe
-        fallback_path = os.path.join(os.path.dirname(whisper_exe), "lecture.wav.txt")
-        if os.path.exists(fallback_path):
-            os.rename(fallback_path, transcript_path)
-        else:
-            return jsonify({"error": "Transcription failed, no output file found"}), 500
-
-    # Read transcript
+    transcript_path = os.path.splitext(output_path)[0] + ".wav.txt"
     with open(transcript_path, "r", encoding="utf-8") as f:
-        transcript = f.read().strip()
+        transcript = f.read()
 
-    # Summarise transcript (using Sumy)
-    parser = PlaintextParser.from_string(transcript, Tokenizer("english"))
-    summarizer = LexRankSummarizer()
-    summary_sentences = summarizer(parser.document, 3)
-    summary = " ".join(str(s) for s in summary_sentences)
-
+    summary = summarise_long_text(transcript)
     return jsonify({"transcript": transcript, "summary": summary})
-
 
 if __name__ == "__main__":
     app.run(debug=True)
