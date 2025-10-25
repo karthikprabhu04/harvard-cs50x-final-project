@@ -1,11 +1,19 @@
-Lecture Summarizer
-Workflow:
-  • User clicks button to record, then stop recording, then able to get both transcript and summary
+# Lecturer Audio Summariser
 
-Features:
+A privacy-first offline app that listens to lectures, transcribes them using Whisper, and summarises the content locally — built for Harvard CS50x.
+
+## Features
+- Offline transcription (Whisper)
+- Offline summarisation (local LLM)
+- Flask web interface
+
+Key features:
   • Free (will make open-source)
     ○ Need to use local AI models
   • Private (information stored locally)
   • Offline (does not need wifi to use)
 
-Run locally on vscode → later can move this into desktop app
+## Run Locally
+```bash
+pip install -r requirements.txt
+python app.py
