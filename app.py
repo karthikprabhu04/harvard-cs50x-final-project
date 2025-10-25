@@ -1,16 +1,12 @@
 from flask import Flask, render_template, request, jsonify
 import os, subprocess
-
+from transformers import pipeline
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Load summarizer once
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-
 def summarise_long_text(text, chunk_size=1000):
-    from transformers import pipeline  # ✅ Lazy import
     summarizer = pipeline("summarization", model="facebook/bart-base")  # ✅ Lighter model
     words = text.split()
     summaries = []
