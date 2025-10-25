@@ -1,4 +1,5 @@
 Flask
-sumy
-nltk
+transformers
+torch
 ffmpeg-python
+gunicorn
