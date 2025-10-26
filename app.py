@@ -7,7 +7,7 @@ UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def summarise_long_text(text, chunk_size=1000):
-    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6g")  # ✅ Lighter model
+    summarizer = pipeline("summarization", model="facebook/bart-large-cnn")  # ✅ Lighter model
     words = text.split()
     summaries = []
     for i in range(0, len(words), chunk_size):

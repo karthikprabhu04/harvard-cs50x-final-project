@@ -1,6 +1,6 @@
 # Offline Lecture Summariser
 
-**Video Demo:** Video link coming soon!
+**Video Demo:** [Youtube video link](https://youtu.be/KGfzC9ksOw8)
 
 
 Most audio summarises require paid, online cloud-based webservers where you're data is submitted to external organisations. This summariser uses local, open-sourced tools to create an offline, private summarises for long-form audio and creates a summary after. No API calls are created, as a local model is used instead. Thus key principles that differentiate this tool are:
